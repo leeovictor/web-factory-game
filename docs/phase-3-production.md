@@ -90,15 +90,17 @@ if state.processing === null && state.input !== null:
 // Saída é coletada por um inserter (lógica abaixo).
 ```
 
-Note que `output` **não é ejetado pela própria fornalha** — ela só "expõe" a barra no slot. É o **inserter** que puxa.
+Note que `output` **não é ejetado pela própria fornalha** — ela só "expõe" a barra no slot lógico único da fornalha 2×2. É o **inserter** que puxa.
 
 ### 3. Inserter (`simulation/InserterArm.ts`)
 
 Geometria:
-- Ocupa tile central; direção D.
-- **Tile à frente (no sentido D)** = **source**.
-- **Tile atrás (oposto de D)** = **dest**.
+- Ocupa tile central (1×1); direção D.
+- **Tile à frente (no sentido D)** = **source**. Pode ser qualquer tile adjacente de uma building multi-tile (furnace 2×2, storage 2×2).
+- **Tile atrás (oposto de D)** = **dest**. Mesma regra: qualquer tile adjacente da footprint serve como ponto de interação.
 - Braço anima entre dois estados: `arm-front` (buscando/acabou de pegar) e `arm-back` (depositando/acabou de depositar).
+
+> Quando `takeFrom(sourceTile)` ou `placeTo(destTile)` encontra uma building multi-tile, localiza a instância via `Grid.getBuilding(tx,ty)` (qualquer tile da footprint retorna a mesma instância) e acessa seu estado central (ex.: `furnace.output` / `furnace.input`).
 
 ```ts
 interface Inserter extends Building {

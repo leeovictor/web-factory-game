@@ -26,8 +26,10 @@ interface Storage extends Building {
 }
 ```
 
+**Footprint**: 2×2 tiles. O slot lógico é único — qualquer tile adjacente a um inserter funciona como ponto de entrada.
+
 **Comportamento**: storage é passivo. Recebe itens de:
-- inserter depositando nele (placeTo).
+- inserter depositando em qualquer tile adjacente da sua footprint (`placeTo` localiza a building e incrementa `counts`).
 - mineradora ejetando direto nele (caso raro, só se colocada adjacente — permitido mas não canônico).
 
 Ao receber:

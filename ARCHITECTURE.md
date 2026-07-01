@@ -23,7 +23,7 @@ src/
       Building.ts            # tipo-base + variantes: Miner, Belt, Furnace, Storage, Inserter
       Item.ts                # item físico: type + posição contínua tile-local (0..1)
     map/
-      GameMap.ts             # tiles fixos {empty, ore}; buildings storage
+      GameMap.ts             # tiles fixos {empty, ore}; buildings storage (multi-tile indexadas por key(x,y))
       mapData.ts             # mapa 40x25 com veio central de minério
     simulation/
       Simulation.ts          # tick(dt=1/60): orquestra produção + movimento + inserter
@@ -61,6 +61,7 @@ App.tsx                      # layout: <GameCanvas/> + <BuildBar/> + <Hud/>
 | Capacidade das esteiras      | 1 item por tile; item ocupa todo o tile (posição contínua 0..1)                            |
 | Loop principal               | requestAnimationFrame independente; React não ticka                                         |
 | Timestep                     | **Fixed 60Hz**; render desacoplado com interpolação `_alpha`                                |
+| Dimensões das buildings      | `miner`/`belt`/`inserter` = 1×1; `furnace`/`storage` = 2×2 (ocupa 4 tiles)                    |
 | Visual                       | Formas chapadas + cores; setas de direção. Zero assets externos                             |
 | Orientação das máquinas      | Sem I/O fixo nas laterais; entradas/saídas mediadas por inserters                          |
 | Mineradora (exceção)         | Tem direção de saída; ejeta minério no tile à frente se houver esteira ou máquina compatível |
@@ -131,7 +132,8 @@ type BuildingKind = 'miner' | 'belt' | 'furnace' | 'storage' | 'inserter'
 interface Building {
   id: string
   kind: BuildingKind
-  x: number; y: number          // tile
+  x: number; y: number          // tile-âncora (canto superior-esquerdo da footprint)
+  width: number; height: number // em tiles (furnace/storage = 2×2)
   direction: Direction           // saída (miner/furnace via inserter/belt)
   // estado específico por kind (slots, timers, etc.) — ver entidades
 }

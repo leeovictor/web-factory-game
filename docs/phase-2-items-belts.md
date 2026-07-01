@@ -32,6 +32,8 @@ export interface Item {
 
 Não há `carrying` ainda nesta fase (surgirá na 3 com inserters).
 
+> Nota multi-tile: belts são sempre **1×1**. Esteiras nunca ocupam mais de um tile.
+
 ### Modelo de esteira (`Belt`)
 
 Estado do `belt`:

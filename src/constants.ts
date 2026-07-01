@@ -1,0 +1,12 @@
+export const GRID_W = 40
+export const GRID_H = 25
+export const TILE_SIZE = 32
+export const STEP = 1 / 60
+export const MIN_ZOOM = 0.5
+export const MAX_ZOOM = 3
+export const INITIAL_ZOOM = 1
+export const BG_COLOR = '#1a1d23'
+export const ORE_COLOR = '#7a6b5a'
+export const FLOOR_COLOR = '#22252b'
+export const GRID_COLOR = 'rgba(255,255,255,0.08)'
+export const CURSOR_COLOR = '#f0c040'

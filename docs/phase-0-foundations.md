@@ -40,7 +40,7 @@ Convenção do grid: `+x` para leste, `+y` para **sul** (canvas). Por isso `N = 
 
 - Borda inteira do grid é `empty` (margem de 1 tile) apenas para безопас нāo colar nada na beira.
 - Veio central: um retângulo ~10x6 de `ore` em torno do centro do mapa (alias `x=15..24, y=10..14`). Tamanho final a ajustar visualmente.
-- `GameMap` expõe: `width`, `height`, `tileAt(x,y): TileKind`, e um `buildings: Map<string, Building>` indexado por `${x},${y}` (ainda vazio nesta fase).
+- `GameMap` expõe: `width`, `height`, `tileAt(x,y): TileKind`, e um `buildings: Map<string, Building>` indexado por `${x},${y}`. Buildings multi-tile (ex.: furnace 2×2) são registradas sob **todas** as chaves de sua footprint. Remoção apaga todas as chaves.
 - Função `key(x,y)` padronizada e usada em todo o projeto via `Grid.ts`.
 
 ### Grid (`Grid.ts`)
@@ -49,6 +49,7 @@ Encapsula helpers sobre o `GameMap.buildings`:
 - `getBuilding(x,y): Building | undefined`
 - `setBuilding(b)`, `removeBuilding(x,y)`
 - `isFree(x,y)` (`tile === 'empty' && !buildings.has(key)`)
+- `canPlace(b): boolean` — verifica se toda a footprint está livre e dentro dos limites
 - `isOre(x,y)`, `inBounds(x,y)`.
 
 ### GameLoop (`GameLoop.ts`)

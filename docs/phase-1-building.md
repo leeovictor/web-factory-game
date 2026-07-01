@@ -42,16 +42,16 @@ Cada instância ganha `id` incremental simples (`crypto.randomUUID()` ou contado
 
 ### Regras de placement (`BuildSystem.ts`)
 
-| Kind       | Tile alvo válido                                | Direção relevante                          |
-| ---------- | ----------------------------------------------- | ------------------------------------------ |
-| miner      | tile `ore` (sem building)                       | saída — aponta para onde ejeta             |
-| belt       | tile `empty` (sem building)                     | sentido de transporte                      |
-| furnace    | tile `empty`                                    | (informativa; sem I/O fixo)                |
-| storage    | tile `empty`                                    | (informativa)                              |
-| inserter   | tile `empty`                                    | define onde pick (frente) e place (`back)  |
+| Kind       | Tile alvo válido                                | Direção relevante                          | Footprint |
+| ---------- | ----------------------------------------------- | ------------------------------------------ | --------- |
+| miner      | tile `ore` (sem building)                       | saída — aponta para onde ejeta             | 1×1       |
+| belt       | tile `empty` (sem building)                     | sentido de transporte                      | 1×1       |
+| furnace    | todos os tiles da footprint `empty`             | (informativa; sem I/O fixo)                | 2×2       |
+| storage    | todos os tiles da footprint `empty`             | (informativa)                              | 2×2       |
+| inserter   | tile `empty` (sem building)                     | define onde pick (frente) e place (`back)  | 1×1       |
 
-- **Não pode sobrepor**: se `Grid.getBuilding(x,y)` existe, placement é recusado (overlay vermelho no ghost).
-- **Mineradora só sobre `ore`**: ghost vermelho se inválido.
+- **Não pode sobrepor**: toda a footprint deve estar livre (`Grid.canPlace(b) === true`). Se qualquer tile da área já tiver building, placement é recusado (overlay vermelho no ghost).
+- **Mineradora só sobre `ore`**: ghost vermelho se inválido. Regra aplica-se ao tile principal `(x,y)` da mineradora (1×1).
 - **Default direction no ghost**: `E` ao iniciar o programa. **R** gira CLOCKWISE: N→E→S→→W→N.
 - O ghost re-renderiza a cada rotação sem precisar mover o mouse.
 
@@ -59,16 +59,17 @@ Inserir/Remover fluem por funções puras que devolvem `Result<{ ok: true } | { 
 
 ### Remoção
 
-- Botão direito sobre uma building remove ela (e, futuramente, descarta itens na fase 2/3).
+- Botão direito sobre **qualquer tile** de uma building remove a **building inteira** (todas as tiles da footprint).
 - Atalho alternativo: segurar `X` + clicar com esquerdo.
 - Regras de mineradora existenciais: só podem ser colocadas sobre `ore`; ao remover, o tile volta a ser `ore` (não se consome).
+- Buildings multi-tile (`furnace`, `storage` 2×2): remoção limpa todas as chaves do `buildings` map.
 
 ### Ghost preview
 
 - `BuildSystem` mantém `current: { kind: BuildingKind | null, direction: Direction }`.
 - A cada mouse-move em novo tile, solicita validação e guarda `ghost: { x, y, valid: boolean }`.
 - Renderer desenha:
-  - Se `current.kind !== null` e `hover` em tile: bounding shape semi-transparente; seta;
+  - Se `current.kind !== null` e `hover` em tile: bounding shape semi-transparente cobrindo toda a **footprint** do kind; seta no centro;
   - **cor verde** se válido, **vermelho** se inválido;
   - seta de direção bem legível (linha + ponta preenchida).
 
@@ -76,13 +77,13 @@ Inserir/Remover fluem por funções puras que devolvem `Result<{ ok: true } | { 
 
 Por kind (versão chapada, sem sprite):
 
-| Kind     | Visual                                                                                    |
-| -------- | ----------------------------------------------------------------------------------------- |
-| miner    | Retângulo cinza-escuro com picareta/entalhe marrom desenhado em canvas; saída: pequena seta amarela |
-| belt     | Retângulo mais claro com **faixa de transporte** no sentido da seta + seta              |
-| furnace  | Retângulo alaranjado com uma "fornalha" (retângulo lateral)                              |
-| storage  | Retângulo azul/ciano com símbolo "box"                                                   |
-| inserter | Retângulo menor com **braço** estendido à frente (linha/círculo + cor)                    |
+| Kind     | Visual                                                                                    | Footprint draw |
+| -------- | ----------------------------------------------------------------------------------------- | -------------- |
+| miner    | Retângulo cinza-escuro com picareta/entalhe marrom desenhado em canvas; saída: pequena seta amarela | 1×1            |
+| belt     | Retângulo mais claro com **faixa de transporte** no sentido da seta + seta              | 1×1            |
+| furnace  | Retângulo alaranjado 2×2 com uma "fornalha" (retângulo lateral)                              | 2×2 (64×64 px) |
+| storage  | Retângulo azul/ciano 2×2 com símbolo "box"                                                   | 2×2 (64×64 px) |
+| inserter | Retângulo menor com **braço** estendido à frente (linha/círculo + cor)                    | 1×1            |
 
 Tudo em `Palette.ts` para centralizar cores.
 
