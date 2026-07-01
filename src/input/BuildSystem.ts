@@ -2,8 +2,9 @@ import type { Grid } from '../game/core/Grid.ts'
 import { GameMap, key } from '../game/map/GameMap.ts'
 import type { Simulation } from '../game/simulation/Simulation.ts'
 import { createBuilding } from '../game/entities/Building.ts'
+import { createItem } from '../game/entities/Item.ts'
 import type { BuildingKind, Direction } from '../types.ts'
-import { rotateCW } from '../game/core/Direction.ts'
+import { rotateCW, opposite } from '../game/core/Direction.ts'
 
 export interface GhostState {
   kind: BuildingKind
@@ -87,6 +88,19 @@ export class BuildSystem {
     this.grid.removeBuilding(x, y)
     const idx = this.sim.buildings.findIndex((bb) => bb.id === b.id)
     if (idx !== -1) this.sim.buildings.splice(idx, 1)
+    return { ok: true }
+  }
+
+  injectItem(x: number, y: number): { ok: true } | { ok: false; reason: string } {
+    const b = this.grid.getBuilding(x, y)
+    if (!b || b.kind !== 'belt' || !b.belt) {
+      return { ok: false, reason: 'not a belt' }
+    }
+    if (b.belt.item !== null) {
+      return { ok: false, reason: 'belt occupied' }
+    }
+    const item = createItem('iron_ore', { x, y }, opposite(b.direction))
+    b.belt.item = item
     return { ok: true }
   }
 

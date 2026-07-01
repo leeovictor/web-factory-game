@@ -114,4 +114,15 @@ Implementação organizada em `Movers.ts`:
 
 - **"Item fantasma" pacing**: garantir `prevPos` seja sempre setado **no início** do tick (não copiar do estado pós-tick). A renderização usa `prevPos` da última simulação guardada; pré-armazenar no fim de cada tick: `at end of simulation.tick: for each item: prevPos := pos`. Porém cuidados: para item recém-transferido, `prevPos` deve ser a posição equivalente no tile anterior para que a interpolação produza movimento contínuo. Decisão: **prevPos := 0 quando transferido** (item entra à esquerda do novo tile). Detalhado em código.
 - **Belts adjacentes em direções contrárias**: estejam ortogonais ou opostas — items param em pos=1 uns dos outros naturalmente; não surge transição. Confirmar com teste manual.
+### Curvas emergentes
+
+Belts podem formar curvas quando um belt vizinho perpendicular aponta para eles. A direção de entrada do item (`inputDir`) é detectada dos vizinhos e armazenada no `Item`.
+
+- **Detecção**: `Grid.detectInputDir(belt)` verifica os 4 vizinhos. Se um belt vizinho aponta para este belt (direção = `opposite(vizinho_dir)`), a entrada é daquele lado. Caso contrário, reta padrão (`opposite(belt.direction)`).
+- **Armazenamento**: `inputDir: Direction` está na interface `Item`. Setado em:
+  - `injectItem`: `opposite(belt.direction)` (reta).
+  - `applyTransfers`: `opposite(from.direction)` (entrou do lado do belt anterior).
+- **Renderização**: itens seguem arco de ¼ círculo quando `inputDir ⟂ direction`. Faixa de transporte do belt também é desenhada como arco. Seta na saída.
+- **Edge cases**: U-turn (input = output) e múltiplas entradas não são tratados no protótipo — o belt visual usa o primeiro vizinho encontrado.
+
 - **Direction vs Y**: lembrete da convenção (N = -y). Ordem de plot do braço do inserter na próxima fase é sensível a isso.

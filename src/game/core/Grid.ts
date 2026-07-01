@@ -1,5 +1,7 @@
 import { GameMap, key } from '../map/GameMap.ts'
-import type { Building } from '../../types.ts'
+import type { Direction } from '../../types.ts'
+import type { BuildingInstance } from '../entities/Building.ts'
+import { DIRS, opposite } from './Direction.ts'
 
 export class Grid {
   private map: GameMap
@@ -8,11 +10,11 @@ export class Grid {
     this.map = map
   }
 
-  getBuilding(x: number, y: number): Building | undefined {
+  getBuilding(x: number, y: number): BuildingInstance | undefined {
     return this.map.buildingAt(x, y)
   }
 
-  setBuilding(b: Building): void {
+  setBuilding(b: BuildingInstance): void {
     this.map.setBuilding(b)
   }
 
@@ -24,7 +26,7 @@ export class Grid {
     return this.map.isFree(x, y)
   }
 
-  canPlace(b: Building): boolean {
+  canPlace(b: BuildingInstance): boolean {
     for (let dy = 0; dy < b.height; dy++) {
       for (let dx = 0; dx < b.width; dx++) {
         const tx = b.x + dx
@@ -43,6 +45,25 @@ export class Grid {
 
   inBounds(x: number, y: number): boolean {
     return this.map.inBounds(x, y)
+  }
+
+  buildingAhead(x: number, y: number, dir: Direction): BuildingInstance | undefined {
+    const { dx, dy } = DIRS[dir]
+    return this.getBuilding(x + dx, y + dy)
+  }
+
+  detectInputDir(b: BuildingInstance): Direction {
+    const defaultDir = opposite(b.direction)
+    if (b.kind !== 'belt') return defaultDir
+    const dirs: Direction[] = ['N', 'E', 'S', 'W']
+    for (const dir of dirs) {
+      const { dx, dy } = DIRS[dir]
+      const neighbor = this.getBuilding(b.x + dx, b.y + dy)
+      if (neighbor && neighbor.kind === 'belt' && neighbor.direction === opposite(dir)) {
+        return dir
+      }
+    }
+    return defaultDir
   }
 
   static key(x: number, y: number): string {

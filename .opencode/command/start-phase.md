@@ -1,6 +1,6 @@
 ---
 description: Inicia a implementação de uma fase do protótipo Simulador de Esteiras (carregando o plano daquela fase e a arquitetura). Use quando o usuário escribir /start-phase <fase N>.
-agent: build
+agent: plan
 ---
 
 Você vai conduzir a implementação de uma fase específica do protótipo **Simulador de Esteiras** (Vite + React + TS + HTML5 Canvas) seguindo rigorosamente o plano estabelecido na documentação.

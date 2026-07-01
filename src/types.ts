@@ -22,5 +22,6 @@ export interface Item {
   onTile: { x: number; y: number }
   pos: number
   prevPos: number
+  inputDir: Direction
   carrying?: boolean
 }

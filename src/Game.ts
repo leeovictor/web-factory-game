@@ -32,11 +32,11 @@ export class Game {
 
     this.map = new GameMap()
     this.grid = new Grid(this.map)
-    this.sim = new Simulation()
+    this.sim = new Simulation(this.grid)
 
     this.buildSystem = new BuildSystem(this.grid, this.map, this.sim)
 
-    this.renderer = new Renderer(this.ctx, this.camera, this.map, () => this.buildSystem.getGhost())
+    this.renderer = new Renderer(this.ctx, this.camera, this.map, this.grid, () => this.buildSystem.getGhost())
 
     this.input = new InputController(
       this.canvas,
@@ -62,6 +62,9 @@ export class Game {
         } else if (key === 'x') {
           const tile = this.input.getHoveredTile()
           if (tile) this.buildSystem.remove(tile.x, tile.y)
+        } else if (key === 'i') {
+          const tile = this.input.getHoveredTile()
+          if (tile) this.buildSystem.injectItem(tile.x, tile.y)
         } else if (key >= '1' && key <= '5') {
           const kinds: BuildingKind[] = ['miner', 'belt', 'furnace', 'storage', 'inserter']
           const idx = parseInt(key) - 1

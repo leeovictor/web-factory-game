@@ -7,4 +7,6 @@ export const PALETTE = {
   ghostValid: 'rgba(0,255,0,0.3)',
   ghostInvalid: 'rgba(255,0,0,0.3)',
   arrow: '#ffffff',
+  iron_ore: '#8a6d43',
+  iron_bar: '#b8c3cc',
 } as const

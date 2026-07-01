@@ -71,6 +71,7 @@ App.tsx                      # layout: <GameCanvas/> + <BuildBar/> + <Hud/>
 | Remoção                      | Descarta item em trânsito (sem inventário do protótipo)                                     |
 | Câmera                        | Pan (arrastar botão do meio ou meio+esquerdo) + zoom com wheel                            |
 | Itens                        | 2 tipos: `iron_ore`, `iron_bar`. Visíveis sobre esteiras e na mão do inserter              |
+| Curvas de esteiras           | Curvas emergentes: `inputDir` detectado dos vizinhos. Arco de ¼ círculo no render. U-turn/merge não tratados no protótipo. |
 | Fluxo canônico (critério)    | Mineradora →Esteiras → Fornalha →Esteiras → Armazenador; **2 inserters** intermediam belt↔furnace |
 
 ### Mínimo de inserters no fluxo canônico
@@ -141,8 +142,9 @@ interface Item {
   id: string
   type: ItemType
   onTile: { x: number; y: number }
-  pos: number       // 0..1 dentro do tile (sentido da direção daEsteira)
+  pos: number       // 0..1 dentro do tile no sentido da direção de saída da esteira
   prevPos: number
+  inputDir: Direction // direção de entrada no tile atual (para curvas)
   carrying?: boolean // true quando na mão de um inserter (não sobre esteira)
 }
 ```

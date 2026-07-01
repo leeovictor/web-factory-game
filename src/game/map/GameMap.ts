@@ -1,4 +1,5 @@
-import type { TileKind, Building } from '../../types.ts'
+import type { TileKind } from '../../types.ts'
+import type { BuildingInstance } from '../entities/Building.ts'
 import { generateMap } from './mapData.ts'
 
 export function key(x: number, y: number): string {
@@ -9,7 +10,7 @@ export class GameMap {
   width: number
   height: number
   tiles: TileKind[][]
-  buildings = new Map<string, Building>()
+  buildings = new Map<string, BuildingInstance>()
 
   constructor() {
     this.tiles = generateMap()
@@ -22,11 +23,11 @@ export class GameMap {
     return this.tiles[y][x]
   }
 
-  buildingAt(x: number, y: number): Building | undefined {
+  buildingAt(x: number, y: number): BuildingInstance | undefined {
     return this.buildings.get(key(x, y))
   }
 
-  setBuilding(b: Building): void {
+  setBuilding(b: BuildingInstance): void {
     for (let dy = 0; dy < b.height; dy++) {
       for (let dx = 0; dx < b.width; dx++) {
         this.buildings.set(key(b.x + dx, b.y + dy), b)

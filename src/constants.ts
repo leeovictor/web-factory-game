@@ -10,3 +10,7 @@ export const ORE_COLOR = '#7a6b5a'
 export const FLOOR_COLOR = '#22252b'
 export const GRID_COLOR = 'rgba(255,255,255,0.08)'
 export const CURSOR_COLOR = '#f0c040'
+export const BELT_SPEED = 1.5
+export const ITEM_SIZE = 0.6
+export const IRON_ORE_COLOR = '#8a6d43'
+export const IRON_BAR_COLOR = '#b8c3cc'

@@ -24,3 +24,8 @@ export function rotateCW(d: Direction): Direction {
     case 'W': return 'N'
   }
 }
+
+export function isPerpendicular(d1: Direction, d2: Direction): boolean {
+  const h = (d: Direction) => d === 'E' || d === 'W'
+  return h(d1) !== h(d2)
+}
