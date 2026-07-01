@@ -1,5 +1,7 @@
 import type { Direction } from './game/core/Direction.ts'
 
+export type { Direction }
+
 export type ItemType = 'iron_ore' | 'iron_bar'
 export type TileKind = 'empty' | 'ore'
 export type BuildingKind = 'miner' | 'belt' | 'furnace' | 'storage' | 'inserter'
