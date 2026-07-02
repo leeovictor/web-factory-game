@@ -1,10 +1,11 @@
 import type { Building, BuildingKind, Direction, Item, ItemType } from '../../types.ts'
 
 export type MinerState = { internal: Item | null; cooldown: number }
-export type BeltState = { item: Item | null }
+export type BeltState = { item: Item | null; inputDirOverride?: Direction }
 export type FurnaceState = { input: Item | null; processing: Item | null; timer: number; output: Item | null }
-export type StorageState = { count: number; itemTypes: Set<ItemType> }
-export type InserterState = { arm: 'front' | 'back'; phase: number; holding: Item | null }
+export type StorageState = { counts: Record<ItemType, number> }
+export type InserterMode = 'waiting_for_cargo' | 'transporting' | 'returning' | 'product_overflow'
+export type InserterState = { phase: number; holding: Item | null; mode: InserterMode }
 
 export interface BuildingInstance extends Building {
   miner?: MinerState
@@ -44,10 +45,10 @@ export function createBuilding(
       base.furnace = { input: null, processing: null, timer: 0, output: null }
       break
     case 'storage':
-      base.storage = { count: 0, itemTypes: new Set() }
+      base.storage = { counts: { iron_ore: 0, iron_bar: 0 } }
       break
     case 'inserter':
-      base.inserter = { arm: 'front', phase: 0, holding: null }
+      base.inserter = { phase: 0, holding: null, mode: 'waiting_for_cargo' }
       break
   }
 

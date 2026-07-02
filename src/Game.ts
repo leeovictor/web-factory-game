@@ -36,7 +36,16 @@ export class Game {
 
     this.buildSystem = new BuildSystem(this.grid, this.map, this.sim)
 
-    this.renderer = new Renderer(this.ctx, this.camera, this.map, this.grid, () => this.buildSystem.getGhost())
+    this.renderer = new Renderer(
+      this.ctx,
+      this.camera,
+      this.map,
+      this.grid,
+      () => this.buildSystem.getGhost(),
+      () => this.buildSystem.getRejectInfo(),
+      () => this.buildSystem.getInserterPreview(),
+      () => this.buildSystem.getCurrentKind()
+    )
 
     this.input = new InputController(
       this.canvas,
@@ -58,7 +67,8 @@ export class Game {
       },
       (key) => {
         if (key === 'r') {
-          this.buildSystem.rotateCW()
+          const tile = this.input.getHoveredTile()
+          this.buildSystem.handleRotate(tile?.x, tile?.y)
         } else if (key === 'x') {
           const tile = this.input.getHoveredTile()
           if (tile) this.buildSystem.remove(tile.x, tile.y)
@@ -73,17 +83,34 @@ export class Game {
           }
         } else if (key === 'escape' || key === '0') {
           eventBus.emit('select-kind', null)
+        } else if (key === 'backspace') {
+          eventBus.emit('clear-buildings', undefined)
+        } else if (key === 'f3') {
+          eventBus.emit('toggle-debug', undefined)
         }
-      }
+      },
+      () => this.buildSystem.getCurrentKind(),
+      (x, y) => this.buildSystem.beginDrag(x, y),
+      (x, y) => this.buildSystem.paintDrag(x, y),
+      () => this.buildSystem.endDrag(),
     )
 
     eventBus.on('select-kind', (kind: BuildingKind | null) => {
       this.buildSystem.setCurrent(kind)
     })
 
+    eventBus.on('clear-buildings', () => {
+      this.buildSystem.clearAll()
+    })
+
+    eventBus.on('toggle-debug', () => {
+      this.renderer.setDebugMode(!this.renderer.getDebugMode())
+    })
+
     this.loop = new GameLoop(
       () => this.sim.tick(1 / 60),
-      (alpha) => this.renderer.render(alpha)
+      (alpha) => this.renderer.render(alpha),
+      () => this.sim.getStats()
     )
   }
 

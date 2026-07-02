@@ -53,6 +53,7 @@ export class Grid {
   }
 
   detectInputDir(b: BuildingInstance): Direction {
+    if (b.kind === 'belt' && b.belt?.inputDirOverride) return b.belt.inputDirOverride
     const defaultDir = opposite(b.direction)
     if (b.kind !== 'belt') return defaultDir
     const dirs: Direction[] = ['N', 'E', 'S', 'W']

@@ -14,3 +14,7 @@ export const BELT_SPEED = 1.5
 export const ITEM_SIZE = 0.6
 export const IRON_ORE_COLOR = '#8a6d43'
 export const IRON_BAR_COLOR = '#b8c3cc'
+export const MINER_INTERVAL = 1
+export const FURNACE_TIME = 2
+export const T_SWING = 0.5
+export const ITEM_PICK_THRESHOLD = 0.95

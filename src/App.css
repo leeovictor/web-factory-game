@@ -182,3 +182,42 @@
     border-right-color: var(--border);
   }
 }
+
+.hud {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(17, 17, 17, 0.85);
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  z-index: 10;
+  pointer-events: none;
+  min-width: 120px;
+}
+
+.hud-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 4px;
+}
+
+.hud-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 3px;
+}
+
+.hud-label {
+  opacity: 0.85;
+}
+
+.hud-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

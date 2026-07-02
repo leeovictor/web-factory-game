@@ -17,18 +17,34 @@ export class InputController {
   private hasDragged = false
   private readonly DRAG_THRESHOLD = 5
 
+  // belt drag-to-build
+  private isBeltDragging = false
+  private lastPaintedTile: { x: number; y: number } | null = null
+  private onDragStart: ((x: number, y: number) => void) | null = null
+  private onPaintTile: ((x: number, y: number) => void) | null = null
+  private onDragEnd: (() => void) | null = null
+  private getActiveKind: () => string | null = () => null
+
   constructor(
     canvas: HTMLCanvasElement,
     camera: Camera,
     onHover: (x: number, y: number | null) => void,
     onClick: (x: number, y: number, button: 'left' | 'right') => void,
-    onKey: (key: string) => void
+    onKey: (key: string) => void,
+    getActiveKind?: () => string | null,
+    onDragStart?: (x: number, y: number) => void,
+    onPaintTile?: (x: number, y: number) => void,
+    onDragEnd?: () => void,
   ) {
     this.canvas = canvas
     this.camera = camera
     this.onHover = onHover
     this.onClick = onClick
     this.onKey = onKey
+    if (getActiveKind) this.getActiveKind = getActiveKind
+    if (onDragStart) this.onDragStart = onDragStart
+    if (onPaintTile) this.onPaintTile = onPaintTile
+    if (onDragEnd) this.onDragEnd = onDragEnd
 
     this.handleMouseMove = this.handleMouseMove.bind(this)
     this.handleMouseDown = this.handleMouseDown.bind(this)
@@ -94,6 +110,15 @@ export class InputController {
     const ty = Math.floor(world.y / TILE_SIZE)
     this.hoveredTile = { x: tx, y: ty }
     this.onHover(tx, ty)
+
+    // Belt drag painting
+    if (this.isBeltDragging && !this.isPanning && this.hasDragged && this.onPaintTile) {
+      if (this.lastPaintedTile &&
+          (this.lastPaintedTile.x !== tx || this.lastPaintedTile.y !== ty)) {
+        this.lastPaintedTile = { x: tx, y: ty }
+        this.onPaintTile(tx, ty)
+      }
+    }
   }
 
   private handleMouseDown(e: MouseEvent): void {
@@ -106,10 +131,29 @@ export class InputController {
     if (e.button === 1 || (e.button === 0 && e.altKey)) {
       this.isPanning = true
     }
+
+    // Start belt drag
+    if (e.button === 0 && !e.altKey && this.getActiveKind() === 'belt' && this.hoveredTile) {
+      this.isBeltDragging = true
+      this.lastPaintedTile = { ...this.hoveredTile }
+      if (this.onDragStart) {
+        this.onDragStart(this.hoveredTile.x, this.hoveredTile.y)
+      }
+    }
   }
 
   private handleMouseUp(e: MouseEvent): void {
-    if (!this.hasDragged && this.mouseDownTile && this.mouseDownButton === e.button) {
+    // Belt drag: suppress onClick only if actually dragged
+    if (this.isBeltDragging) {
+      if (!this.hasDragged && this.mouseDownTile && this.mouseDownButton === e.button) {
+        if (e.button === 0 || e.button === 2) {
+          this.onClick(this.mouseDownTile.x, this.mouseDownTile.y, e.button === 0 ? 'left' : 'right')
+        }
+      }
+      this.isBeltDragging = false
+      this.lastPaintedTile = null
+      if (this.onDragEnd) this.onDragEnd()
+    } else if (!this.hasDragged && this.mouseDownTile && this.mouseDownButton === e.button) {
       if (e.button === 0 || e.button === 2) {
         this.onClick(this.mouseDownTile.x, this.mouseDownTile.y, e.button === 0 ? 'left' : 'right')
       }
@@ -140,6 +184,9 @@ export class InputController {
 
   private handleKeyDown(e: KeyboardEvent): void {
     const key = e.key.toLowerCase()
+    if (key === 'f3') {
+      e.preventDefault()
+    }
     this.onKey(key)
   }
 }
