@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ECS Demo</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: #111;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family: sans-serif;
+      }
+      #wrap {
+        position: relative;
+      }
+      canvas {
+        border: 1px solid #333;
+        background: linear-gradient(to bottom, #0b1026 0%, #1b1f3b 45%, #2d2a4a 75%, #3d2f2f 100%);
+        display: block;
+      }
+      #ui {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        color: #ccc;
+        font-size: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        background: rgba(0,0,0,0.5);
+        padding: 8px 12px;
+        border-radius: 6px;
+        user-select: none;
+      }
+      #ui label { display: flex; align-items: center; gap: 8px; }
+      #ui input[type="range"] { width: 120px; }
+      #fps { color: #7bed9f; font-weight: bold; }
+      #count { color: #70a1ff; }
+      #chargeBarWrap {
+        width: 100%;
+        height: 6px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 2px;
+        display: none;
+      }
+      #chargeBarFill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(to right, #fffa65, #ff9f43, #ff5e57);
+        border-radius: 3px;
+        transition: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="wrap">
+      <canvas id="canvas" width="1200" height="675"></canvas>
+      <div id="ui">
+        <div>ECS Archetype Demo — Bouncing balls</div>
+        <div>FPS: <span id="fps">0</span></div>
+        <div>Entities: <span id="count">0</span></div>
+        <div>Tick: <span id="tickTime">0</span> ms / <span id="phaseTimings">...</span></div>
+        <div id="chargeWrap">Grenade: <span id="chargeLabel">ready</span>
+          <div id="chargeBarWrap">
+            <div id="chargeBarFill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/demo/ecs-demo.ts"></script>
+  </body>
+</html>
