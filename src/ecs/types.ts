@@ -54,6 +54,7 @@ export interface World {
   addPhase(name: string, index?: number): void;
   setPhaseOrder(names: string[]): void;
   flush(): void;
+  clearQueryCache(): void;
   step(dt: number): void;
   phaseTimings: Record<string, number>;
 }

@@ -42,6 +42,24 @@ export function createWorld(config?: WorldConfig): World {
   const phases: Phase[] = [];
   const phaseIndex = new Map<string, Phase>();
   let inStep = false;
+  let archetypeGen = 0;
+  const matchingArchetypesCache = new Map<string, { gen: number; archetypes: ArchetypeInternal[] }>();
+
+  function getCachedArchetypes(mask: Mask): ArchetypeInternal[] {
+    const key = String(mask);
+    const entry = matchingArchetypesCache.get(key);
+    if (entry && entry.gen === archetypeGen) {
+      return entry.archetypes;
+    }
+    const result: ArchetypeInternal[] = [];
+    for (const archetype of archetypes.values()) {
+      if ((archetype.mask & mask) === mask) {
+        result.push(archetype);
+      }
+    }
+    matchingArchetypesCache.set(key, { gen: archetypeGen, archetypes: result });
+    return result;
+  }
 
   const phaseNames = config?.phases ?? ['default'];
   for (const name of phaseNames) {
@@ -53,6 +71,7 @@ export function createWorld(config?: WorldConfig): World {
   function getOrCreateArchetype(tokens: ComponentToken<any>[]): ArchetypeInternal {
     const mask = tokensToMask(tokens);
     if (archetypes.has(mask)) return archetypes.get(mask)!;
+    archetypeGen++;
 
     const archetype: ArchetypeInternal = {
       mask,
@@ -229,19 +248,19 @@ export function createWorld(config?: WorldConfig): World {
     },
 
     query(...tokens: ComponentToken<any>[]): EntityQuery {
-      const self = (mandatory: ComponentToken<any>[], all: ComponentToken<any>[]): EntityQuery => ({
-        withTag(...tags: ComponentToken<undefined>[]) {
-          return self(mandatory, [...all, ...tags]);
-        },
-        *[Symbol.iterator]() {
-          const queryMask = tokensToMask(all);
-          for (const archetype of archetypes.values()) {
-            if ((archetype.mask & queryMask) === queryMask) {
+      const self = (mandatory: ComponentToken<any>[], all: ComponentToken<any>[]): EntityQuery => {
+        const queryMask = tokensToMask(all);
+        return {
+          withTag(...tags: ComponentToken<undefined>[]) {
+            return self(mandatory, [...all, ...tags]);
+          },
+          *[Symbol.iterator]() {
+            for (const archetype of getCachedArchetypes(queryMask)) {
               yield* archetype.entities;
             }
-          }
-        },
-      });
+          },
+        };
+      };
       return self(tokens, [...tokens]);
     },
 
@@ -249,22 +268,22 @@ export function createWorld(config?: WorldConfig): World {
       ...tokens: T
     ): ComponentQuery<T> {
       const mandatory = [...tokens];
-      const self = (all: ComponentToken<any>[]): ComponentQuery<T> => ({
-        withTag(...tags: ComponentToken<undefined>[]) {
-          return self([...all, ...tags]);
-        },
-        *[Symbol.iterator]() {
-          const queryMask = tokensToMask(all);
-          for (const archetype of archetypes.values()) {
-            if ((archetype.mask & queryMask) === queryMask) {
+      const self = (all: ComponentToken<any>[]): ComponentQuery<T> => {
+        const queryMask = tokensToMask(all);
+        return {
+          withTag(...tags: ComponentToken<undefined>[]) {
+            return self([...all, ...tags]);
+          },
+          *[Symbol.iterator]() {
+            for (const archetype of getCachedArchetypes(queryMask)) {
               const cols = mandatory.map(t => archetype.data.get(t)!);
               for (let row = 0; row < archetype.entities.length; row++) {
                 yield [archetype.entities[row], ...cols.map(c => c[row])] as unknown as [Entity, ...QueryResult<T>];
               }
             }
-          }
-        },
-      });
+          },
+        };
+      };
       return self([...tokens]);
     },
 
@@ -329,6 +348,10 @@ export function createWorld(config?: WorldConfig): World {
 
     flush() {
       flushPending();
+    },
+
+    clearQueryCache() {
+      matchingArchetypesCache.clear();
     },
 
     phaseTimings: {},
