@@ -1,6 +1,11 @@
-import { createDefaultWorld, Transform, Circle } from '../ecs/builtin';
+import { createDefaultWorld, Transform, Circle, CanvasCtx } from '../ecs/builtin';
 import { Velocity } from './components';
+import { defineTag, defineResource } from '../ecs';
 import type { World } from '../ecs';
+
+const BallCount = defineResource('BallCount', { count: 0 });
+
+const Fast = defineTag('Fast');
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const fpsEl = document.getElementById('fps')!;
@@ -9,6 +14,7 @@ const tickEl = document.getElementById('tickTime')!;
 const phaseEl = document.getElementById('phaseTimings')!;
 const slider = document.getElementById('ballSlider') as HTMLInputElement;
 const sliderVal = document.getElementById('ballSliderVal')!;
+const fastCountEl = document.getElementById('fastCount')!;
 
 const dw = createDefaultWorld({ canvas, width: 1200, height: 675 });
 
@@ -29,23 +35,24 @@ function spawnBall() {
   const vx = random(-250, 250);
   const vy = random(-250, 250);
   const color = colors[Math.floor(Math.random() * colors.length)];
+  const isFast = Math.random() < 0.25;
   dw.spawn(
     Transform({ x, y }),
     Circle({ radius, color, fill: true }),
-    Velocity({ vx, vy })
+    Velocity({ vx, vy }),
+    ...(isFast ? [Fast()] : [])
   );
 }
 
 function createBallCountSystem() {
   return (w: World) => {
     const target = parseInt(slider.value, 10);
-    let current = 0;
-    for (const _ of w.queryComponents(Transform, Circle, Velocity)) {
-      current++;
-    }
+    const cache = w.getResource(BallCount);
+    const current = cache.count;
     if (current < target) {
       for (let i = current; i < target; i++) {
         spawnBall();
+        cache.count++;
       }
     } else if (current > target) {
       const toRemove: number[] = [];
@@ -55,6 +62,7 @@ function createBallCountSystem() {
       }
       for (const e of toRemove) {
         w.despawn(e);
+        cache.count--;
       }
     }
   };
@@ -62,9 +70,10 @@ function createBallCountSystem() {
 
 function createBallMovementSystem() {
   return (w: World, dt: number) => {
-    for (const [_, t, c, v] of w.queryComponents(Transform, Circle, Velocity)) {
-      t.x += v.vx * dt;
-      t.y += v.vy * dt;
+    for (const [e, t, c, v] of w.queryComponents(Transform, Circle, Velocity)) {
+      const mult = w.has(e, Fast) ? 1.5 : 1.0;
+      t.x += v.vx * dt * mult;
+      t.y += v.vy * dt * mult;
 
       if (t.x - c.radius < 0) {
         t.x = c.radius;
@@ -85,6 +94,22 @@ function createBallMovementSystem() {
   };
 }
 
+function createFastHighlightSystem() {
+  return (w: World) => {
+    const ctx = w.getResource(CanvasCtx).context;
+    if (!ctx) return;
+    ctx.save();
+    for (const [_, t, c] of w.queryComponents(Transform, Circle).withTag(Fast)) {
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, c.radius + 3, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    ctx.restore();
+  };
+}
+
 function createUISystem() {
   const frameTimes: number[] = [];
   let elapsed = 0;
@@ -102,8 +127,11 @@ function createUISystem() {
     }
 
     let entityCount = 0;
+    let fastCount = 0;
     for (const _ of dw.world.query(Transform)) entityCount++;
+    for (const _ of dw.world.query().withTag(Fast)) fastCount++;
     countEl.textContent = entityCount.toString();
+    fastCountEl.textContent = fastCount.toString();
     tickEl.textContent = dw.getTickTime().toFixed(2);
 
     const timings = dw.getPhaseTimings();
@@ -121,6 +149,7 @@ slider.addEventListener('input', () => {
 
 dw.addSystem(createBallCountSystem(), 'input');
 dw.addSystem(createBallMovementSystem(), 'update');
+dw.addSystem(createFastHighlightSystem(), 'postRender');
 dw.addSystem(createUISystem(), 'postRender');
 
 dw.start();

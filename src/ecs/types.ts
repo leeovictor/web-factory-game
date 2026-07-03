@@ -5,6 +5,7 @@ export interface ComponentToken<T = any> {
   readonly id: number;
   readonly name: string;
   readonly defaults: T;
+  readonly isTag?: true;
   (partial?: Partial<T>): ComponentPayload<T>;
 }
 
@@ -23,6 +24,14 @@ export type QueryResult<T extends readonly ComponentToken<any>[]> = {
   [K in keyof T]: T[K] extends ComponentToken<infer D> ? D : never;
 };
 
+export interface EntityQuery extends Iterable<Entity> {
+  withTag(...tokens: ComponentToken<undefined>[]): EntityQuery;
+}
+
+export interface ComponentQuery<T extends readonly ComponentToken<any>[]> extends Iterable<[Entity, ...QueryResult<T>]> {
+  withTag(...tokens: ComponentToken<undefined>[]): ComponentQuery<T>;
+}
+
 export interface WorldConfig {
   phases?: string[];
 }
@@ -34,10 +43,10 @@ export interface World {
   remove<T>(entity: Entity, token: ComponentToken<T>): void;
   get<T>(entity: Entity, token: ComponentToken<T>): T | undefined;
   has(entity: Entity, token: ComponentToken<any>): boolean;
-  query(...tokens: ComponentToken<any>[]): IterableIterator<Entity>;
+  query(...tokens: ComponentToken<any>[]): EntityQuery;
   queryComponents<T extends readonly ComponentToken<any>[]>(
     ...tokens: T
-  ): IterableIterator<[Entity, ...QueryResult<T>]>;
+  ): ComponentQuery<T>;
   insertResource<T>(token: ResourceToken<T>, data: T): void;
   getResource<T>(token: ResourceToken<T>): T;
   addSystem(system: (world: World, dt: number) => void, phase?: string): void;

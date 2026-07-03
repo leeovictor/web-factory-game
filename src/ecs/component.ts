@@ -19,3 +19,18 @@ export function defineComponent<T extends object>(
 
   return factory as unknown as ComponentToken<T>;
 }
+
+export function defineTag(name: string): ComponentToken<undefined> {
+  const id = nextComponentId++;
+
+  const factory = (): ComponentPayload<undefined> => {
+    return { token: factory as unknown as ComponentToken<undefined>, data: undefined };
+  };
+
+  Object.defineProperty(factory, 'id', { value: id, writable: false });
+  Object.defineProperty(factory, 'name', { value: name, writable: false });
+  Object.defineProperty(factory, 'defaults', { value: undefined, writable: false });
+  Object.defineProperty(factory, 'isTag', { value: true, writable: false });
+
+  return factory as unknown as ComponentToken<undefined>;
+}

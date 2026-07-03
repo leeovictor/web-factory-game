@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Entity, ComponentToken, ComponentPayload, QueryResult, World, WorldConfig } from './types';
+import type { Entity, ComponentToken, ComponentPayload, QueryResult, World, WorldConfig, EntityQuery, ComponentQuery } from './types';
 
 type Mask = bigint;
 
@@ -77,7 +77,11 @@ export function createWorld(config?: WorldConfig): World {
     const row = archetype.entities.length;
     archetype.entities.push(entity);
     for (const [token, arr] of archetype.data.entries()) {
-      arr.push(dataMap.get(token) ?? { ...token.defaults });
+      if ((token as any).isTag) {
+        arr.push(undefined);
+      } else {
+        arr.push(dataMap.get(token) ?? { ...token.defaults });
+      }
     }
     entityIndex.set(entity, { archetype, row });
   }
@@ -224,29 +228,44 @@ export function createWorld(config?: WorldConfig): World {
       return loc.archetype.tokens.has(token);
     },
 
-    *query(...tokens) {
-      const queryMask = tokensToMask(tokens);
-      for (const archetype of archetypes.values()) {
-        if ((archetype.mask & queryMask) === queryMask) {
-          for (const e of archetype.entities) {
-            yield e;
+    query(...tokens: ComponentToken<any>[]): EntityQuery {
+      const self = (mandatory: ComponentToken<any>[], all: ComponentToken<any>[]): EntityQuery => ({
+        withTag(...tags: ComponentToken<undefined>[]) {
+          return self(mandatory, [...all, ...tags]);
+        },
+        *[Symbol.iterator]() {
+          const queryMask = tokensToMask(all);
+          for (const archetype of archetypes.values()) {
+            if ((archetype.mask & queryMask) === queryMask) {
+              yield* archetype.entities;
+            }
           }
-        }
-      }
+        },
+      });
+      return self(tokens, [...tokens]);
     },
 
-    *queryComponents<T extends readonly ComponentToken<any>[]>(
+    queryComponents<T extends readonly ComponentToken<any>[]>(
       ...tokens: T
-    ): IterableIterator<[Entity, ...QueryResult<T>]> {
-      const queryMask = tokensToMask(tokens);
-      for (const archetype of archetypes.values()) {
-        if ((archetype.mask & queryMask) === queryMask) {
-          const columns = tokens.map(t => archetype.data.get(t)!);
-          for (let row = 0; row < archetype.entities.length; row++) {
-            yield [archetype.entities[row], ...columns.map(col => col[row])] as unknown as [Entity, ...QueryResult<T>];
+    ): ComponentQuery<T> {
+      const mandatory = [...tokens];
+      const self = (all: ComponentToken<any>[]): ComponentQuery<T> => ({
+        withTag(...tags: ComponentToken<undefined>[]) {
+          return self([...all, ...tags]);
+        },
+        *[Symbol.iterator]() {
+          const queryMask = tokensToMask(all);
+          for (const archetype of archetypes.values()) {
+            if ((archetype.mask & queryMask) === queryMask) {
+              const cols = mandatory.map(t => archetype.data.get(t)!);
+              for (let row = 0; row < archetype.entities.length; row++) {
+                yield [archetype.entities[row], ...cols.map(c => c[row])] as unknown as [Entity, ...QueryResult<T>];
+              }
+            }
           }
-        }
-      }
+        },
+      });
+      return self([...tokens]);
     },
 
     insertResource(token, data) {
