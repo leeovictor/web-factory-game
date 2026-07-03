@@ -87,9 +87,14 @@ function createBallMovementSystem() {
 
 function createUISystem() {
   const frameTimes: number[] = [];
+  let elapsed = 0;
   return (_w: World, dt: number) => {
     frameTimes.push(dt);
     if (frameTimes.length > 60) frameTimes.shift();
+
+    elapsed += dt;
+    if (elapsed < 0.25) return;
+    elapsed = 0;
 
     if (frameTimes.length >= 10) {
       const avg = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
