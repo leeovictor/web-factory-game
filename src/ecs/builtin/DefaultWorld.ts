@@ -2,7 +2,9 @@
 import type { Entity, ComponentPayload, World } from '../types';
 import { createWorld } from '../world';
 import { CanvasCtx } from './resources/canvas';
+import { SpatialGrid } from './resources/spatialGrid';
 import { createTimeSystem } from './systems/timeSystem';
+import { createSpatialGridSystem } from './systems/spatialGridSystem';
 import { createRenderSystem } from './systems/renderSystem';
 
 export interface DefaultWorldConfig {
@@ -31,7 +33,15 @@ export function createDefaultWorld(config: DefaultWorldConfig): DefaultWorld {
     height: config.height,
   });
 
+  world.insertResource(SpatialGrid, {
+    cellSize: 200,
+    cells: new Map<number, number[]>(),
+    staticCells: null,
+    needsStaticRebuild: true,
+  });
+
   world.addSystem(createTimeSystem(), 'input');
+  world.addSystem(createSpatialGridSystem(), 'render');
   world.addSystem(createRenderSystem(), 'render');
 
   let animationId: number | null = null;

@@ -248,34 +248,44 @@ export function createWorld(config?: WorldConfig): World {
     },
 
     query(...tokens: ComponentToken<any>[]): EntityQuery {
-      const self = (mandatory: ComponentToken<any>[], all: ComponentToken<any>[]): EntityQuery => {
+      const self = (mandatory: ComponentToken<any>[], all: ComponentToken<any>[], exclude: ComponentToken<any>[]): EntityQuery => {
         const queryMask = tokensToMask(all);
+        const excludeMask = tokensToMask(exclude);
         return {
           withTag(...tags: ComponentToken<undefined>[]) {
-            return self(mandatory, [...all, ...tags]);
+            return self(mandatory, [...all, ...tags], exclude);
+          },
+          without(...tokens: ComponentToken<any>[]) {
+            return self(mandatory, all, [...exclude, ...tokens]);
           },
           *[Symbol.iterator]() {
             for (const archetype of getCachedArchetypes(queryMask)) {
+              if (excludeMask !== 0n && (archetype.mask & excludeMask) !== 0n) continue;
               yield* archetype.entities;
             }
           },
         };
       };
-      return self(tokens, [...tokens]);
+      return self(tokens, [...tokens], []);
     },
 
     queryComponents<T extends readonly ComponentToken<any>[]>(
       ...tokens: T
     ): ComponentQuery<T> {
       const mandatory = [...tokens];
-      const self = (all: ComponentToken<any>[]): ComponentQuery<T> => {
+      const self = (all: ComponentToken<any>[], exclude: ComponentToken<any>[]): ComponentQuery<T> => {
         const queryMask = tokensToMask(all);
+        const excludeMask = tokensToMask(exclude);
         return {
           withTag(...tags: ComponentToken<undefined>[]) {
-            return self([...all, ...tags]);
+            return self([...all, ...tags], exclude);
+          },
+          without(...tokens: ComponentToken<any>[]) {
+            return self(all, [...exclude, ...tokens]);
           },
           *[Symbol.iterator]() {
             for (const archetype of getCachedArchetypes(queryMask)) {
+              if (excludeMask !== 0n && (archetype.mask & excludeMask) !== 0n) continue;
               const cols = mandatory.map(t => archetype.data.get(t)!);
               for (let row = 0; row < archetype.entities.length; row++) {
                 yield [archetype.entities[row], ...cols.map(c => c[row])] as unknown as [Entity, ...QueryResult<T>];
@@ -284,7 +294,7 @@ export function createWorld(config?: WorldConfig): World {
           },
         };
       };
-      return self([...tokens]);
+      return self([...tokens], []);
     },
 
     insertResource(token, data) {

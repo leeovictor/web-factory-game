@@ -1,11 +1,14 @@
 export { Transform } from './components/transform';
-export { Circle } from './components/circle';
-export { Rect } from './components/rect';
-export { Sprite } from './components/sprite';
-export { Capsule } from './components/capsule';
+export { SpriteRenderer } from './components/spriteRenderer';
+export { Static } from './components/static';
+export type { SpriteVariant } from './components/spriteRenderer';
 export { Time } from './resources/time';
 export { CanvasCtx } from './resources/canvas';
+export { SpatialGrid, getCellKey } from './resources/spatialGrid';
+export { Camera } from './resources/camera';
 export { createTimeSystem } from './systems/timeSystem';
+export { createSpatialGridSystem } from './systems/spatialGridSystem';
+export { createSpatialGridDebugSystem } from './systems/spatialGridDebugSystem';
 export { createRenderSystem } from './systems/renderSystem';
 export { createDefaultWorld } from './DefaultWorld';
 export type { DefaultWorld, DefaultWorldConfig } from './DefaultWorld';

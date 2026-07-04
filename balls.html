@@ -41,6 +41,10 @@
       #ui input[type="range"] { width: 120px; }
       #fps { color: #7bed9f; font-weight: bold; }
       #count { color: #70a1ff; }
+      #renderedCount { color: #7bed9f; }
+      #staticCount { color: #a29bfe; }
+      #dynamicCount { color: #ffc048; }
+      #culledCount { color: #ff5e57; }
     </style>
   </head>
   <body>
@@ -54,7 +58,10 @@
           <span id="ballSliderVal">500</span>
         </label>
         <div>FPS: <span id="fps">0</span></div>
+        <label><input id="debugToggle" type="checkbox" checked /> Show grid cells</label>
         <div>Entities: <span id="count">0</span> | Fast: <span id="fastCount">0</span></div>
+        <div>Static: <span id="staticCount">0</span> | Dynamic: <span id="dynamicCount">0</span></div>
+        <div>Rendered: <span id="renderedCount">0</span> / <span id="totalCount">0</span> (<span id="culledCount">0</span> culled)</div>
         <div>Tick: <span id="tickTime">0</span> ms / <span id="phaseTimings">...</span></div>
       </div>
     </div>

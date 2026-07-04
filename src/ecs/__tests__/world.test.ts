@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { defineComponent } from '../component';
+import { defineComponent, defineTag } from '../component';
 import { createWorld } from '../world';
 
 describe('createWorld', () => {
@@ -540,5 +540,201 @@ describe('queryComponents', () => {
     }
 
     expect(Array.from(world.query(Position)).length).toBe(0);
+  });
+});
+
+describe('query().without()', () => {
+  const Position = defineComponent('Position', { x: 0, y: 0 });
+  const Velocity = defineComponent('Velocity', { vx: 0, vy: 0 });
+  const Health = defineComponent('Health', { hp: 100 });
+  const Static = defineComponent('Static', { immovable: true });
+
+  it('should exclude entities with the specified component', () => {
+    const world = createWorld();
+    const e1 = world.instantiate(Position({ x: 1 }));
+    const e2 = world.instantiate(Position({ x: 2 }), Static());
+    const e3 = world.instantiate(Position({ x: 3 }));
+
+    const results = Array.from(world.query(Position).without(Static));
+    expect(results).toContain(e1);
+    expect(results).toContain(e3);
+    expect(results).not.toContain(e2);
+  });
+
+  it('should exclude entities with multiple components via chaining', () => {
+    const world = createWorld();
+    const e1 = world.instantiate(Position({ x: 1 }));
+    const e2 = world.instantiate(Position({ x: 2 }), Static());
+    const e3 = world.instantiate(Position({ x: 3 }), Health());
+    const e4 = world.instantiate(Position({ x: 4 }), Static(), Health());
+
+    const results = Array.from(world.query(Position).without(Static).without(Health));
+    expect(results).toContain(e1);
+    expect(results).not.toContain(e2);
+    expect(results).not.toContain(e3);
+    expect(results).not.toContain(e4);
+  });
+
+  it('should exclude multiple components in a single call', () => {
+    const world = createWorld();
+    const e1 = world.instantiate(Position({ x: 1 }));
+    const e2 = world.instantiate(Position({ x: 2 }), Static());
+    const e3 = world.instantiate(Position({ x: 3 }), Health());
+    const e4 = world.instantiate(Position({ x: 4 }), Static(), Health());
+
+    const results = Array.from(world.query(Position).without(Static, Health));
+    expect(results).toContain(e1);
+    expect(results).not.toContain(e2);
+    expect(results).not.toContain(e3);
+    expect(results).not.toContain(e4);
+  });
+
+  it('should work combined with withTag', () => {
+    const IsPlayer = defineTag('IsPlayer');
+    const world = createWorld();
+    const e1 = world.instantiate(Position({ x: 1 }), IsPlayer());
+    const e2 = world.instantiate(Position({ x: 2 }), IsPlayer(), Static());
+    const e3 = world.instantiate(Position({ x: 3 }), IsPlayer());
+
+    const results = Array.from(world.query(Position).withTag(IsPlayer).without(Static));
+    expect(results).toContain(e1);
+    expect(results).toContain(e3);
+    expect(results).not.toContain(e2);
+  });
+
+  it('should not affect the original query object', () => {
+    const world = createWorld();
+    const e1 = world.instantiate(Position({ x: 1 }));
+    const e2 = world.instantiate(Position({ x: 2 }), Static());
+
+    const base = world.query(Position);
+    const filtered = base.without(Static);
+
+    expect(Array.from(base)).toContain(e1);
+    expect(Array.from(base)).toContain(e2);
+    expect(Array.from(filtered)).toContain(e1);
+    expect(Array.from(filtered)).not.toContain(e2);
+  });
+
+  it('should return empty when excluding a required component', () => {
+    const world = createWorld();
+    world.instantiate(Position({ x: 1 }));
+
+    const results = Array.from(world.query(Position).without(Position));
+    expect(results.length).toBe(0);
+  });
+
+  it('should return same results when without has no tokens', () => {
+    const world = createWorld();
+    const e1 = world.instantiate(Position({ x: 1 }));
+    const e2 = world.instantiate(Position({ x: 2 }));
+
+    const results = Array.from(world.query(Position).without());
+    expect(results).toContain(e1);
+    expect(results).toContain(e2);
+  });
+
+  it('should work with multiple components in query', () => {
+    const world = createWorld();
+    const e1 = world.instantiate(Position({ x: 1 }), Velocity({ vx: 10 }));
+    const e2 = world.instantiate(Position({ x: 2 }), Velocity({ vx: 20 }), Static());
+    const e3 = world.instantiate(Position({ x: 3 }), Velocity({ vx: 30 }));
+
+    const results = Array.from(world.query(Position, Velocity).without(Static));
+    expect(results).toContain(e1);
+    expect(results).toContain(e3);
+    expect(results).not.toContain(e2);
+  });
+
+  it('should be iterable with for...of', () => {
+    const world = createWorld();
+    world.instantiate(Position({ x: 1 }), Static());
+    world.instantiate(Position({ x: 2 }));
+    world.instantiate(Position({ x: 3 }));
+
+    let count = 0;
+    for (const _ of world.query(Position).without(Static)) {
+      count++;
+    }
+    expect(count).toBe(2);
+  });
+});
+
+describe('queryComponents().without()', () => {
+  const Position = defineComponent('Position', { x: 0, y: 0 });
+  const Velocity = defineComponent('Velocity', { vx: 0, vy: 0 });
+  const Health = defineComponent('Health', { hp: 100 });
+  const Static = defineComponent('Static', { immovable: true });
+
+  it('should exclude entities with the specified component', () => {
+    const world = createWorld();
+    const e1 = world.instantiate(Position({ x: 1 }), Velocity({ vx: 10 }));
+    const e2 = world.instantiate(Position({ x: 2 }), Velocity({ vx: 20 }), Static());
+
+    const results = Array.from(world.queryComponents(Position, Velocity).without(Static));
+    expect(results.length).toBe(1);
+    expect(results[0][0]).toBe(e1);
+  });
+
+  it('should yield mutable references with without filter', () => {
+    const world = createWorld();
+    const e = world.instantiate(Position({ x: 0 }), Velocity({ vx: 0 }));
+
+    for (const [_, pos, vel] of world.queryComponents(Position, Velocity).without(Static)) {
+      pos.x = 99;
+      vel.vx = 88;
+    }
+
+    expect(world.get(e, Position)!.x).toBe(99);
+    expect(world.get(e, Velocity)!.vx).toBe(88);
+  });
+
+  it('should chain withTag and without', () => {
+    const IsPlayer = defineTag('IsPlayer');
+    const world = createWorld();
+    const e1 = world.instantiate(Position({ x: 1 }), Velocity({ vx: 10 }), IsPlayer());
+    const e2 = world.instantiate(Position({ x: 2 }), Velocity({ vx: 20 }), IsPlayer(), Static());
+
+    const results = Array.from(world.queryComponents(Position, Velocity).withTag(IsPlayer).without(Static));
+    expect(results.length).toBe(1);
+    expect(results[0][0]).toBe(e1);
+  });
+
+  it('should not affect the original query object', () => {
+    const world = createWorld();
+    const e1 = world.instantiate(Position({ x: 1 }), Velocity({ vx: 10 }));
+    const e2 = world.instantiate(Position({ x: 2 }), Velocity({ vx: 20 }), Static());
+
+    const base = world.queryComponents(Position, Velocity);
+    const filtered = base.without(Static);
+
+    expect(Array.from(base).length).toBe(2);
+    expect(Array.from(filtered).length).toBe(1);
+  });
+
+  it('should work with multiple components in query', () => {
+    const world = createWorld();
+    const e1 = world.instantiate(Position({ x: 1 }), Velocity({ vx: 10 }), Health({ hp: 100 }));
+    const e2 = world.instantiate(Position({ x: 2 }), Velocity({ vx: 20 }), Static());
+    const e3 = world.instantiate(Position({ x: 3 }), Velocity({ vx: 30 }));
+
+    const results = Array.from(world.queryComponents(Position, Velocity).without(Static));
+    const ids = results.map(([id]) => id);
+    expect(ids).toContain(e1);
+    expect(ids).toContain(e3);
+    expect(ids).not.toContain(e2);
+  });
+
+  it('should be iterable with for...of', () => {
+    const world = createWorld();
+    world.instantiate(Position({ x: 1 }), Velocity({ vx: 10 }));
+    world.instantiate(Position({ x: 2 }), Velocity({ vx: 20 }), Static());
+    world.instantiate(Position({ x: 3 }), Velocity({ vx: 30 }));
+
+    let count = 0;
+    for (const _ of world.queryComponents(Position, Velocity).without(Static)) {
+      count++;
+    }
+    expect(count).toBe(2);
   });
 });

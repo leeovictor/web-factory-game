@@ -26,10 +26,12 @@ export type QueryResult<T extends readonly ComponentToken<any>[]> = {
 
 export interface EntityQuery extends Iterable<Entity> {
   withTag(...tokens: ComponentToken<undefined>[]): EntityQuery;
+  without(...tokens: ComponentToken<any>[]): EntityQuery;
 }
 
 export interface ComponentQuery<T extends readonly ComponentToken<any>[]> extends Iterable<[Entity, ...QueryResult<T>]> {
   withTag(...tokens: ComponentToken<undefined>[]): ComponentQuery<T>;
+  without(...tokens: ComponentToken<any>[]): ComponentQuery<T>;
 }
 
 export interface WorldConfig {
