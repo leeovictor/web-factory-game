@@ -97,6 +97,19 @@
         text-shadow: 0 0 20px rgba(255, 71, 87, 0.5);
         pointer-events: none;
       }
+      #turretRangePanel {
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        background: rgba(0,0,0,0.7);
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        color: #ccc;
+        user-select: none;
+      }
+      #turretRangePanel label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+      #turretRangePanel input { cursor: pointer; }
     </style>
   </head>
   <body>
@@ -115,6 +128,9 @@
         <div style="font-size:11px;color:#555;text-align:right;">FPS: <span id="fps">0</span></div>
       </div>
       <div id="gameOver">GAME OVER</div>
+      <div id="turretRangePanel">
+        <label><input type="checkbox" id="turretRangeToggle" /> Mostrar alcance das turretas</label>
+      </div>
     </div>
     <script type="module" src="/src/demo/play/index.ts"></script>
   </body>

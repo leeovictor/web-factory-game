@@ -30,3 +30,7 @@ export const TransportNetwork = defineResource('TransportNetwork', {
   lines: new Map<number, LineState>(),
   nextPacketId: 0,
 });
+
+export const UISettings = defineResource('UISettings', {
+  showTurretRanges: false,
+});

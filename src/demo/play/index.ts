@@ -1,7 +1,7 @@
 import { createWorld } from '../../ecs';
 import type { World } from '../../ecs';
 import { CanvasCtx, Camera, Transform, SpriteRenderer, createTimeSystem } from '../../ecs/builtin';
-import { GameState, ConnectionGraph, MouseState, TransportNetwork } from './resources';
+import { GameState, ConnectionGraph, MouseState, TransportNetwork, UISettings } from './resources';
 import { spawnInitialWorld } from './spawn';
 
 import { createInputSystem } from './systems/inputSystem';
@@ -25,6 +25,8 @@ import { createConnectionRenderSystem } from './systems/connectionRenderSystem';
 import { createLaserRenderSystem } from './systems/laserRenderSystem';
 import { createSolarPanelRenderSystem } from './systems/solarPanelRenderSystem';
 import { createHealthBarRenderSystem } from './systems/healthBarRenderSystem';
+import { createTurretRangeRenderSystem } from './systems/turretRangeRenderSystem';
+import { createToggleTurretRanges } from './systems/turretRangeToggle';
 import { createHUDSystem } from './systems/hudSystem';
 import { createTransportEmissionSystem } from './systems/transportEmissionSystem';
 import { createTransportMovementSystem } from './systems/transportMovementSystem';
@@ -64,6 +66,7 @@ world.insertResource(GameState, {
 world.insertResource(ConnectionGraph, { nodes: new Map<number, number>() });
 world.insertResource(TransportNetwork, { lines: new Map(), nextPacketId: 0 });
 world.insertResource(MouseState, { x: 0, y: 0, worldX: 0, worldY: 0, clicked: false });
+world.insertResource(UISettings, { showTurretRanges: false });
 
 world.addSystem(createTimeSystem(), 'input');
 world.addSystem(createInputSystem(canvas), 'input');
@@ -93,6 +96,7 @@ world.addSystem(createConnectionRenderSystem(), 'render');
 world.addSystem(createTransportRenderSystem(), 'render');
 world.addSystem(createLaserRenderSystem(), 'render');
 world.addSystem(createSolarPanelRenderSystem(), 'render');
+world.addSystem(createTurretRangeRenderSystem(), 'render');
 world.addSystem(createHealthBarRenderSystem(), 'render');
 
 world.addSystem(createHUDSystem(statsEl, fpsEl, buildMenuEl), 'postRender');
@@ -174,6 +178,12 @@ buildMenuEl.addEventListener('click', (e) => {
   const mode = btn.dataset.build as 'miner' | 'turret' | 'laser' | 'solar' | 'demolish';
   const state = world.getResource(GameState);
   state.buildMode = state.buildMode === mode ? '' : mode;
+});
+
+const turretRangeToggleEl = document.getElementById('turretRangeToggle') as HTMLInputElement;
+const toggleTurretRanges = createToggleTurretRanges(world);
+turretRangeToggleEl.addEventListener('change', () => {
+  toggleTurretRanges(turretRangeToggleEl.checked);
 });
 
 spawnInitialWorld(world);
