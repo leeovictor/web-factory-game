@@ -6,6 +6,9 @@ import { SpatialGrid } from './resources/spatialGrid';
 import { createTimeSystem } from './systems/timeSystem';
 import { createSpatialGridSystem } from './systems/spatialGridSystem';
 import { createRenderSystem } from './systems/renderSystem';
+import { createPhysicsSystem } from './systems/physicsSystem';
+import { createCollisionSystem } from './systems/collisionDetectionSystem';
+import { createCollisionResolutionSystem } from './systems/collisionResolutionSystem';
 
 export interface DefaultWorldConfig {
   canvas: HTMLCanvasElement;
@@ -24,7 +27,7 @@ export interface DefaultWorld {
 }
 
 export function createDefaultWorld(config: DefaultWorldConfig): DefaultWorld {
-  const world = createWorld({ phases: ['input', 'update', 'render', 'postRender'] });
+  const world = createWorld({ phases: ['input', 'physics', 'update', 'render', 'postRender'] });
 
   world.insertResource(CanvasCtx, {
     element: config.canvas,
@@ -41,6 +44,9 @@ export function createDefaultWorld(config: DefaultWorldConfig): DefaultWorld {
   });
 
   world.addSystem(createTimeSystem(), 'input');
+  world.addSystem(createPhysicsSystem(), 'physics');
+  world.addSystem(createCollisionSystem(), 'physics');
+  world.addSystem(createCollisionResolutionSystem(), 'physics');
   world.addSystem(createSpatialGridSystem(), 'render');
   world.addSystem(createRenderSystem(), 'render');
 

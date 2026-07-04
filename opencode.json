@@ -1,4 +1,21 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "lsp": true
+  "lsp": true,
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://host.docker.internal:11434/v1"
+      },
+      "models": {
+        "gemma4:e4b": {
+          "name": "gemma4:e4b"
+        },
+        "gemma4:e2b": {
+          "name": "gemma4:e2b"
+        }
+      }
+    }
+  }
 }

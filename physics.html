@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Physics Demo</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: #111;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family: sans-serif;
+      }
+      #wrap {
+        position: relative;
+      }
+      canvas {
+        border: 1px solid #333;
+        background: linear-gradient(to bottom, #0b1026 0%, #1b1f3b 45%, #2d2a4a 75%, #3d2f2f 100%);
+        display: block;
+      }
+      #ui {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        color: #ccc;
+        font-size: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        background: rgba(0,0,0,0.6);
+        padding: 8px 12px;
+        border-radius: 6px;
+        user-select: none;
+        max-width: 260px;
+      }
+      #ui h3 {
+        margin: 0 0 4px 0;
+        font-size: 13px;
+        color: #fff;
+        border-bottom: 1px solid #444;
+        padding-bottom: 4px;
+      }
+      #ui label { display: flex; align-items: center; gap: 8px; }
+      #fps { color: #7bed9f; font-weight: bold; }
+      .section {
+        background: rgba(255,255,255,0.05);
+        padding: 6px 8px;
+        border-radius: 4px;
+      }
+      .section-title {
+        font-weight: bold;
+        color: #ffc048;
+        margin-bottom: 2px;
+      }
+      kbd {
+        background: #333;
+        border: 1px solid #555;
+        border-radius: 3px;
+        padding: 1px 4px;
+        font-size: 11px;
+        color: #ddd;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="wrap">
+      <canvas id="canvas" width="1200" height="675"></canvas>
+      <div id="ui">
+        <div>Physics Demo — RigidBody examples</div>
+        <div>FPS: <span id="fps">0</span></div>
+        <div>Tick: <span id="tickTime">0</span> ms</div>
+        <div>Phase: <span id="phaseTimings">...</span></div>
+
+        <div class="section">
+          <div class="section-title">Gravity (quedas)</div>
+          <label>
+            <input id="gravityToggle" type="checkbox" checked /> Enable gravity
+          </label>
+          <label>
+            Balls:
+            <input id="fallSlider" type="range" min="0" max="1000" value="20" />
+            <span id="fallSliderVal">20</span>
+          </label>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Projétil (parábola)</div>
+          <div>Click no canvas para atirar</div>
+          <label>
+            Power:
+            <input id="powerSlider" type="range" min="200" max="1500" value="800" />
+            <span id="powerSliderVal">800</span>
+          </label>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Controle por teclado</div>
+          <div><kbd>←</kbd> <kbd>→</kbd> mover | <kbd>Space</kbd> pulo</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Plataforma kinematic</div>
+          <div>Mover automaticamente ↑↓</div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/demo/physics-demo.ts"></script>
+  </body>
+</html>
